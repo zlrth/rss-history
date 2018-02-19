@@ -17,9 +17,9 @@
 
 (defn rename-rss-keys [set-of-feeds]
   (map (fn [x] (rename-keys x {:published-date :pubDate
-                               :authors :author
-                               :categories :category
-                               :enclosures :enclosure
+                               :authors        :author
+                               :categories     :category
+                               :enclosures     :enclosure
                                :uri :guid})) set-of-feeds))
 
 (defn dissoc-rss-keys [set-of-feeds] ;; TODO un-dissoc :category
