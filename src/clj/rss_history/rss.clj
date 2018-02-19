@@ -20,7 +20,8 @@
                                :authors        :author
                                :categories     :category
                                :enclosures     :enclosure
-                               :uri :guid})) set-of-feeds))
+                               :uri            :guid}))
+       set-of-feeds))
 
 (defn dissoc-rss-keys [set-of-feeds] ;; TODO un-dissoc :category
   (map #(dissoc % :contributors :contents :category) set-of-feeds))
