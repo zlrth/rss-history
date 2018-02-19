@@ -12,5 +12,10 @@
        (home-page))
   (GET "/docs" []
        (-> (response/ok (-> "docs/docs.md" io/resource slurp))
+           (response/header "Content-Type" "text/plain; charset=utf-8")))
+  (GET "/matt" []
+       (-> (response/ok (-> "docs/docs.md" io/resource slurp))
+           (response/header "Content-Type" "text/plain; charset=utf-8"))
+       (-> (response/ok (-> "xml.xml" slurp))
            (response/header "Content-Type" "text/plain; charset=utf-8"))))
 

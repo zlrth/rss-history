@@ -15,14 +15,13 @@
                  [metosin/muuntaja "0.3.1"]
                  [metosin/ring-http-response "0.9.0"]
                  [mount "0.1.11"]
-                 [org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.9.671" :scope "provided"]
                  [org.clojure/tools.cli "0.3.5"]
                  [org.clojure/tools.logging "0.4.0"]
                  [org.webjars.bower/tether "1.4.0"]
                  [org.webjars/bootstrap "4.0.0-alpha.5"]
                  [org.webjars/font-awesome "4.7.0"]
-                 [org.clojars.smallrivers/feedparser-clj "0.5.1"]
                  [re-frame "0.9.4"]
                  [reagent "0.7.0"]
                  [reagent-utils "0.2.1"]
@@ -32,7 +31,8 @@
                  [secretary "1.2.3"]
                  [selmer "1.10.7"]
                  [feedme "0.0.3"]
-                 [clj-rss "0.2.3"]]
+                 [clj-rss "0.2.3"]
+                 [org.clojars.gnzh/feedparser-clj "0.6.1"]]
 
   :min-lein-version "2.0.0"
 
@@ -127,4 +127,4 @@
 
                   }
    :profiles/dev {}
-   :profiles/test {}})
+})
