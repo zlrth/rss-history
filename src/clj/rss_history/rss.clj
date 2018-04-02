@@ -31,7 +31,10 @@
 #_(defn rejigger-description [set-of-feeds] ;; HACK terse. also 
   (map (fn [x] (update x :description :value)) set-of-feeds))
 (defn rejigger-description-blogspot [set-of-feeds] ;; HACK terse
-  (map (fn [x] (assoc x :description "<![CDATA[this is <b>bold</b>]]>" #_(-> x :contents first :value))) set-of-feeds))
+  (map (fn [x]
+         (let [value (-> x :contents first :value)
+               cdata (str "<![CDATA[" value "]]>")]
+           (assoc x :description #_"<![CDATA[this is <b>bold</b>]]>" cdata ))) set-of-feeds))
 
 (defn xml-str
   "Returns a string suitable for inclusion as an XML element. If the string
