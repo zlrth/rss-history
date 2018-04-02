@@ -10,3 +10,8 @@
   :docs
   (fn [db _]
     (:docs db)))
+
+(reg-sub
+ :feed-url
+ (fn [db _]
+   (:feed-url db)))

@@ -40,21 +40,52 @@
 (defn home-page []
   [:div.container
    "<?xml version='1.0' encoding='UTF-8'?>\n<rss version='2.0' xmlns:atom='http://www.w3.org/2005/Atom'>\n<channel>\n<atom:link href='http://unqualified-reservations.blogspot.com' rel='self' type='application/rss+xml'/>\n<title>\nLung\n</title>\n<link>\nhttp://unqualified-reservations.blogspot.com\n</link>\n<description>\nhaving fun\n</description>\n<generator>\nclj-rss\n</generator>\n</channel>\n</rss>\n"])
+(defn atom-input [value]
+  (let [save (fn [] (rf/dispatch [:set-feed-url @value]))
+        stop (fn [] (rf/dispatch [:set-feed-url ""]))]
+    [:input {:type "text"
+             :value @value
+             :placeholder "bonk"
+             :on-change #(reset! value (-> % .-target .-value))
+             :on-key-down #(case (.-which %)
+                             13 (save)
+                             27 (stop)
+                             nil)
+             }])
+  #_[:p "hello"]
+  #_[:input
+   {:type "button"
+    :value "click mel"
+    :on-click #(rf/dispatch [:set-feed-url @value])}])
+
+
+
+#_(defn db-value []
+  [])
 
 (defn rss-page []
+  (let [value (r/atom "")]
+    [:div.container
+     "enter something"
+     [atom-input value]
+     [:div
+      [:p "the db value is" @(rf/subscribe [:feed-url])]]
+     ]))
+
+(defn test-page []
   [:div.container
-   "<?xml version='1.0' encoding='UTF-8'?>\n<rss version='2.0' xmlns:atom='http://www.w3.org/2005/Atom'>\n<channel>\n<atom:link href='http://unqualified-reservations.blogspot.com' rel='self' type='application/rss+xml'/>\n<title>\nLung\n</title>\n<link>\nhttp://unqualified-reservations.blogspot.com\n</link>\n<description>\nhaving fun\n</description>\n<generator>\nclj-rss\n</generator>\n</channel>\n</rss>\n"
-   ])
+   "dumb"])
 
 
 (def pages
   {:home #'home-page
    :about #'about-page
-   :rss #'rss-page})
+   :rss #'rss-page
+   :test #'test-page})
 
 (defn page []
   [:div
-   #_[navbar]
+   [navbar]
    [(pages @(rf/subscribe [:page]))]])
 
 ;; -------------------------
@@ -69,6 +100,9 @@
 
 (secretary/defroute "/rss" []
   (rf/dispatch [:set-active-page :rss]))
+
+(secretary/defroute "/test" []
+  (rf/dispatch [:set-active-page :test]))
 ;; -------------------------
 ;; History
 ;; must be called after routes have been defined

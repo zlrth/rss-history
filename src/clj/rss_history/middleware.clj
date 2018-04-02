@@ -3,6 +3,7 @@
             [clojure.tools.logging :as log]
             [rss-history.layout :refer [*app-context* error-page]]
             [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
+            [ring.middleware.cors :refer [wrap-cors]]
             [ring.middleware.webjars :refer [wrap-webjars]]
             [muuntaja.middleware :refer [wrap-format wrap-params]]
             [rss-history.config :refer [env]]
@@ -55,6 +56,8 @@
   (-> ((:middleware defaults) handler)
       wrap-webjars
       wrap-flash
+      (wrap-cors :access-control-allow-origin [#".*localhost.*"]
+                 :access-control-allow-methods [:get :put :post :delete])
       (wrap-session {:cookie-attrs {:http-only true}})
       (wrap-defaults
         (-> site-defaults

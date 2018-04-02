@@ -3,8 +3,7 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
 
-  :dependencies [[clj-time "0.13.0"]
-                 [cljs-ajax "0.6.0"]
+  :dependencies [[cljs-ajax "0.6.0"]
                  [compojure "1.6.0"]
                  [cprop "0.1.10"]
                  [funcool/struct "1.0.0"]
@@ -32,7 +31,9 @@
                  [selmer "1.10.7"]
                  [feedme "0.0.3"]
                  [clj-rss "0.2.3"]
-                 [org.clojars.gnzh/feedparser-clj "0.6.1"]]
+                 [org.clojars.smallrivers/feedparser-clj "0.5.1"]
+                 [clj-time "0.14.2"]
+                 [ring-cors "0.1.11"]]
 
   :min-lein-version "2.0.0"
 

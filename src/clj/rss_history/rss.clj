@@ -1,7 +1,8 @@
 (ns rss-history.rss
   (:require [clojure.set :refer [rename-keys]]
             [feedparser-clj.core :as feedparser]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clj-time.core :as time]))
 
 (def feeds  (->> "ribbonrss"
                  io/file
@@ -17,6 +18,7 @@
 
 (defn rename-rss-keys [set-of-feeds]
   (map (fn [x] (rename-keys x {:published-date :pubDate
+                               :updated-date   :pubDate
                                :authors        :author
                                :categories     :category
                                :enclosures     :enclosure
@@ -26,5 +28,30 @@
 (defn dissoc-rss-keys [set-of-feeds] ;; TODO un-dissoc :category
   (map #(dissoc % :contributors :contents :category) set-of-feeds))
 
-(defn rejigger-description [set-of-feeds] ;; HACK terse
+#_(defn rejigger-description [set-of-feeds] ;; HACK terse. also 
   (map (fn [x] (update x :description :value)) set-of-feeds))
+(defn rejigger-description-blogspot [set-of-feeds] ;; HACK terse
+    (map (fn [x] (assoc x :description (-> x :contents first :value))) set-of-feeds))
+
+(defn xml-str
+  "Returns a string suitable for inclusion as an XML element. If the string
+  is wrapped in <![CDATA[ ... ]]>, do not escape special characters."
+  [^String s]
+  (if (and (.startsWith s "<![CDATA[")
+           (.endsWith s "]]>"))
+    s
+    (if s
+      (let [escapes {\< "&lt;",
+                     \> "&gt;",
+                     \& "&amp;",
+                     \" "&quot;"}]
+        (clojure.string/escape s escapes)))))
+
+(defn escape-description-in-feed [entry]
+  (clojure.walk/postwalk #(if-let [value (:description %)]
+                            (assoc % :description (xml-str value))
+                            %) entry))
+
+#_ (as-> (feedparser/parse-feed "http://anonymousmugwump.blogspot.co.uk/feeds/posts/default?max-results=100") $
+     (map rss-history.rss/escape-value-in-feed (:entries $))
+     ())

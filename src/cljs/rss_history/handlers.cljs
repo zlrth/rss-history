@@ -16,3 +16,8 @@
   :set-docs
   (fn [db [_ docs]]
     (assoc db :docs docs)))
+
+(reg-event-db
+ :set-feed-url
+ (fn [db [_ feed]]
+   (assoc db :feed-url feed)))

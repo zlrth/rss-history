@@ -1,4 +1,5 @@
 (ns rss-history.db)
 
 (def default-db
-  {:page :home})
+  {:page :home
+   :feed-url "hello there"})
