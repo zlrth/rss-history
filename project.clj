@@ -3,7 +3,9 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
 
-  :dependencies [[cljs-ajax "0.6.0"]
+  :dependencies [
+
+                 [cljs-ajax "0.6.0"]
                  [compojure "1.6.0"]
                  [cprop "0.1.10"]
                  [funcool/struct "1.0.0"]
@@ -15,13 +17,13 @@
                  [metosin/ring-http-response "0.9.0"]
                  [mount "0.1.11"]
                  [org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.9.671" :scope "provided"]
+                 [org.clojure/clojurescript "1.10.238" :scope "provided"]
                  [org.clojure/tools.cli "0.3.5"]
                  [org.clojure/tools.logging "0.4.0"]
                  [org.webjars.bower/tether "1.4.0"]
                  [org.webjars/bootstrap "4.0.0-alpha.5"]
                  [org.webjars/font-awesome "4.7.0"]
-                 [re-frame "0.9.4"]
+                 ;; [re-frame "0.9.4"]
                  [reagent "0.7.0"]
                  [reagent-utils "0.2.1"]
                  [ring-webjars "0.2.0"]
@@ -33,7 +35,13 @@
                  [clj-rss "0.2.3"]
                  [org.clojars.smallrivers/feedparser-clj "0.5.1"]
                  [clj-time "0.14.2"]
-                 [ring-cors "0.1.11"]]
+                 [ring-cors "0.1.11"]
+                 ;; [com.datomic/client-pro "0.8.14"]
+
+                 [hickory "0.7.1"]
+                 [com.rpl/specter "1.1.1-SNAPSHOT"]
+                 [com.datomic/datomic-free "0.9.5697"]
+                 ]
 
   :min-lein-version "2.0.0"
 
