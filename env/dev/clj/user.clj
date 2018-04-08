@@ -2,7 +2,6 @@
   (:require [mount.core :as mount]
             [com.rpl.specter :as specter]
             [clojure.pprint :as pp]
-            [rss-history.figwheel :refer [start-fw stop-fw cljs]]
             [clojure.java.shell :as sh]
             [feedparser-clj.core :as feed]
             [clojure.walk :as w]

@@ -1,6 +1,5 @@
 (ns rss-history.db
-  (:require [datomic.client.api :as d]
-            [clojure.edn :as edn]
+  (:require [clojure.edn :as edn]
             [rss-history.utils :as u]))
 
 

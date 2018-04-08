@@ -17,13 +17,11 @@
                  [metosin/ring-http-response "0.9.0"]
                  [mount "0.1.11"]
                  [org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.10.238" :scope "provided"]
                  [org.clojure/tools.cli "0.3.5"]
                  [org.clojure/tools.logging "0.4.0"]
                  [org.webjars.bower/tether "1.4.0"]
                  [org.webjars/bootstrap "4.0.0-alpha.5"]
                  [org.webjars/font-awesome "4.7.0"]
-                 ;; [re-frame "0.9.4"]
                  [reagent "0.7.0"]
                  [reagent-utils "0.2.1"]
                  [ring-webjars "0.2.0"]
@@ -36,12 +34,10 @@
                  [org.clojars.smallrivers/feedparser-clj "0.5.1"]
                  [clj-time "0.14.2"]
                  [ring-cors "0.1.11"]
-                 ;; [com.datomic/client-pro "0.8.14"]
-
+                 [com.datomic/client-pro "0.8.14"]
                  [hickory "0.7.1"]
                  [com.rpl/specter "1.1.1-SNAPSHOT"]
-                 [com.datomic/datomic-free "0.9.5697"]
-                 ]
+                 [com.datomic/datomic-free "0.9.5697"]]
 
   :min-lein-version "2.0.0"
 
@@ -94,12 +90,9 @@
                                  [pjstadig/humane-test-output "0.8.2"]
                                  [binaryage/devtools "0.9.4"]
                                  [com.cemerick/piggieback "0.2.2"]
-                                 [doo "0.1.7"]
-                                 [figwheel-sidecar "0.5.10"]]
+                                 [doo "0.1.7"]]
                   :plugins      [[com.jakemccrary/lein-test-refresh "0.19.0"]
-                                 [lein-doo "0.1.7"]
-                                 [lein-figwheel "0.5.10"]
-                                 [org.clojure/clojurescript "1.9.671"]]
+                                 [lein-doo "0.1.7"]]
                   :cljsbuild
                   {:builds
                    {:app
