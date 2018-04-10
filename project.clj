@@ -2,11 +2,8 @@
 
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
-
-  :dependencies [
-
-                 [cljs-ajax "0.6.0"]
-                 [compojure "1.6.0"]
+  :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"}}
+  :dependencies [[compojure "1.6.0"]
                  [cprop "0.1.10"]
                  [funcool/struct "1.0.0"]
                  [luminus-immutant "0.2.3"]
@@ -35,9 +32,13 @@
                  [clj-time "0.14.2"]
                  [ring-cors "0.1.11"]
                  [com.datomic/client-pro "0.8.14"]
+                 [com.datomic/datomic-pro "0.9.5697"
+                  :exclusions [org.slf4j/slf4j-nop org.slf4j/slf4j-log4j12]
+                  ]
+                 [ch.qos.logback/logback-classic "1.2.3"]
                  [hickory "0.7.1"]
                  [com.rpl/specter "1.1.1-SNAPSHOT"]
-                 [com.datomic/datomic-free "0.9.5697"]]
+                 #_[com.datomic/datomic-free "0.9.5697"]]
 
   :min-lein-version "2.0.0"
 

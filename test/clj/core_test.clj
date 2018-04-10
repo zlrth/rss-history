@@ -6,31 +6,28 @@
    [rss-history.rss :refer :all]
    [clojure.java.io :as io]
    [clj-rss.core :as rss]
-   [feedparser-clj.core :as feedparser]
-   [feedme :as fm]))
+   [feedparser-clj.core :as feedparser]))
 
 (declare fixture-feed)
-
-(deftest can-blah-get-a-feed-entries-from-a-fixture-page
-  (let [feed (fm/parse "file:///Users/matt/hacking/rss-history/test/resources/rss.xml")]
-    (is (= 20 (count (:entries feed))))))
 
 (deftest can-get-atom-feed-from-internet
   (let [num-entries 5
         feed (feedparser/parse-feed (str "http://anonymousmugwump.blogspot.co.uk/feeds/posts/default?max-results=" num-entries))]
     (is (= num-entries (count (:entries feed))))))
+
 ;; terry tao
 ;; johncarlosbaez
 ;; ncatlab
+
 (deftest can-take-atom-feed-and-reproduce
   )
 
-(deftest can-produce-rss-feed-with-fixture-data-from-rss-namespace
+#_(deftest can-produce-rss-feed-with-fixture-data-from-rss-namespace
   (is (= fixture-feed 
          (->> deduplicated
               rename-rss-keys
               dissoc-rss-keys
-              rejigger-description
+              rejigger-description-blogspot
               (take 5)
               (rss/channel-xml {:title "foobar"
                                 :link "link"
@@ -47,4 +44,33 @@
                        :link "link"
                        :description "descriptionfoobar"})
      (spit "withescaping.xml")
+     )
+
+
+#_(deftest invalid-xml)
+#_ (let [r 182
+         baseurl  "http://www.thesartorialist.com/feed/?paged="]
+     (reset! entries [])
+     (doall 
+      (for [n r]
+        (let [_         (print n)
+              all-feeds (:entries (feedparser/parse-feed (str baseurl n)))]
+          (doall
+           (for [feed all-feeds]
+             (swap! entries conj feed))))))
+     'dope
+     )
+
+
+#_ (let [r (range 1 182)
+         baseurl  "http://www.thesartorialist.com/feed/?paged="]
+     (reset! entries [])
+     (doall 
+      (for [n r]
+        (let [_         (print n)
+              all-feeds (:entries (feedparser/parse-feed (str baseurl n)))]
+          (doall
+           (for [feed all-feeds]
+             (swap! entries conj feed))))))
+     'dope
      )

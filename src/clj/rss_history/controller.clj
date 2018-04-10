@@ -22,7 +22,7 @@
         number-of-posts (count (:entries derecordized))]
 
     (db/add-feed-url-and-user-to-db! derecordized name url)
-    (log/info {:postCount number-of-posts})
+    (log/debug {:postCount number-of-posts})
     (json/write-str {:postCount number-of-posts})))
 
 
@@ -38,7 +38,7 @@
   (let [])
   (log/info params)
   (log/info (type params))
-  (db/add-first-feed-to-db! )
+  ;; (db/add-first-feed-to-db! )
 
   )
 

@@ -12,7 +12,9 @@
             rss-history.core
             [rss-history.db :as db]
             [rss-history.utils :as u]
-            [datomic.client.api :as d]))
+            [datomic.api :as d]
+            [datomic.client.api :as dclient]
+            [rss-history.controller :as cont]))
 
 (defn start []
   (mount/start-without #'rss-history.core/repl-server))
@@ -23,49 +25,76 @@
 (defn restart []
   (stop)
   (start))
+(def uri "datomic:dev://localhost:4334/hello") ;; for free
+#_(d/create-database uri) ;; for free
+
+#_(datomic.api/connect uri)
+#_(def conn (d/connect uri)) ;; for free
+
+
+
 
 (def cfg {:server-type :peer-server
           :access-key "myaccesskey"
           :secret "mysecret"
-          :endpoint "localhost:4334"})
+          :endpoint "localhost:8998"}) ;; not sure about this change
 
-(def client (d/client cfg))
+;; (def client (dclient/client cfg))
+;; for some reason, i can't uncomment this
 
-;; (def conn (d/connect client {:db-name "hello"}))
+;;  (def conn (d/connect client {:db-name "hello"})) ;; for some reason, i can't uncomment this
 
 (def user-schema
-  [{:db/ident :user/name
+  [{;; :db/id #db/id[:db.part/db]
+    :db/ident :user/name
+    :db/unique :db.unique/identity
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/doc "user name"}])
+    :db/doc "user name"
+    :db.install/_attribute :db.part/db
+    }])
 (def add-user
-  {:user/name "matt"})
+  [{:user/name "chonk"}])
 (def add-doc
-  {:top/doc
-   {:doc/owner [:user/name "matt"]
-    :doc/fulltext "test"
-    :doc/url "www.google.com"}})
+  [{:doc/user [:user/name "matt"]
+     :doc/fulltext "test"
+     :doc/url "www.google.com"}])
 (def add-derived-feed
   {:doc/fragments
    [{:doc/feedtext "te"}
     {:doc/feedtext "xt"}]})
 (def doc-schema
-  [{:db/ident :doc/url
+  [{:db/id #db/id[:db.part/db]
+    :db/ident :doc/url
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/doc "original URL of feed"}
-   {:db/ident :doc/feed-url
+    :db/doc "original URL of feed"
+    :db.install/_attribute :db.part/db}
+   {:db/id #db/id[:db.part/db]
+    :db/ident :doc/user
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one
+    :db/doc "each doc has one user"
+    :db.install/_attribute :db.part/db}
+   {:db/id #db/id[:db.part/db]
+    :db/ident :doc/feed-url
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/doc "libby.io:blah/whatever/atom.xml"}
-   {:db/ident :doc/date
+    :db/doc "libby.io:blah/whatever/atom.xml"
+    :db.install/_attribute :db.part/db}
+   {:db/id #db/id[:db.part/db]
+    :db/ident :doc/date
     :db/valueType :db.type/instant
     :db/cardinality :db.cardinality/one
-    :db/doc "original URL of feed"}
-   {:db/ident :doc/fulltext
+    :db/doc "original URL of feed"
+    :db.install/_attribute :db.part/db}
+   {:db/id #db/id[:db.part/db]
+    :db/ident :doc/fulltext
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/doc "original URL of feed"}])
+    :db/doc "fulltext of the feed"
+    :db.install/_attribute :db.part/db}])
+
 (def derived-feed-schema
   [{:db/ident :doc/fragments
     :db/valueType :db.type/ref
@@ -76,3 +105,11 @@
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
     :db/doc "a feed item. one post."}])
+
+
+
+(defn add-feed-url-and-user-to-db! [feed user url]
+  (let [tx [{:doc/user user
+             :doc/url  url
+             :doc/fulltext feed}]]
+    (d/transact db/db-conn tx)))
