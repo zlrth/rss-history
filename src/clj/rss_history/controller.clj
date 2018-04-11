@@ -14,13 +14,10 @@
   "In the first interaction the user has with the app, we are given their name,
   and the URL they want. We parse the feed, and tell the user how many posts
   there are, to help them decide how they want their feed."
-  [params]
-  (let [url             (:url params)
-        name            (:name params)
-        feed            (feedparser/parse-feed (utils/format-url url))
+  [{:keys [url name] :as params}]
+  (let [feed            (feedparser/parse-feed (utils/format-url url))
         derecordized    (clojure.walk/postwalk #(if (record? %) (into {} %) %) feed) ;; HACK records don't deserialize via the standard deserializer. Maybe  ptaoussanis/nippy would work?
         number-of-posts (count (:entries derecordized))]
-
     (db/add-feed-url-and-user-to-db! derecordized name url)
     (log/info {:postCount number-of-posts})
     (json/write-str {:postCount number-of-posts})))
@@ -33,13 +30,10 @@
   the feed URL
   the end date if :type \"finisher\"
   for now, we're only implementing \"finisher\" "
-  [params]
-  (let [_ (log/info params)
-        user (:user params)
-        url  (:url params)
-        time (:partitionLength params)
-        feed (rss-history.rss/produce-feed user url time)]
+  [{:keys [user url partitionLength] :as params}]
+  (let [feed (rss-history.rss/produce-feed user url partitionLength)]
     (db/add-first-feed-to-db! feed user url)
-    (publish url)))
+    (json/write-str {:success "hi"})))
+
 
 
