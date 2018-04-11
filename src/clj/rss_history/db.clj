@@ -21,38 +21,6 @@
     (d/shutdown false)))
 
 
-(def state-atom (atom []))
-
-(def dummy-data
-  [{:user "matt"
-    :docs [{:fulltext "the text"
-            :url "www.google.com"
-            :fragments [{:date "2017" :fragment "the"}
-                        {:date "2018" :fragment " text"}]}
-           {:fulltext "is good"
-            :url "www.bing.com"
-            :fragments [{:date "2017" :fragment "is"}
-                        {:date "2018" :fragment " good"}]}]}
-   {:user "ttam"
-    :docs [{:fulltext "bark mark"
-            :url "www.yahoo.com"
-            :fragments [{:date "2017" :fragment "bark"}
-                        {:date "2018" :fragment " mark"}]}]}])
-
-(defn serialize! []
-  (spit "state.edn" @state-atom))
-
-(defn startup
-  "Load 'database'. Empty string is the last form because (reset!) returns the new value, which is a large data structure, which locks up my repl when developing."
-  []
-  (reset! state-atom (edn/read-string (slurp "state.edn")))
-  "")
-
-#_(defn add-feed-url-and-user-to-db! [feed user url]
-  (swap! state-atom conj {:user user :docs [{:fulltext feed :url url}]})
-  (serialize!))
-
-
 (defn add-feed-url-and-user-to-db! [feed user url]
   (let [tx [{:user/name user
              :doc/url url
@@ -65,3 +33,57 @@
 
 ;; add url: libby.io:8080/matt/title/feed
 ;; GET thatthng query datomic: given today's timestamp, serve the feed.
+
+(def user-schema
+  [{;; :db/id #db/id[:db.part/db]
+    :db/ident :user/name
+    :db/unique :db.unique/identity
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "user name"
+    :db.install/_attribute :db.part/db
+    }])
+
+
+(def doc-schema
+  [{;; :db/id #db/id[:db.part/db]
+    :db/ident :doc/url
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "original URL of feed"
+    :db.install/_attribute :db.part/db}
+   {;; :db/id #db/id[:db.part/db]
+    :db/ident :doc/user
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one
+    :db/doc "each doc has one user"
+    :db.install/_attribute :db.part/db}
+   {;; :db/id #db/id[:db.part/db]
+    :db/ident :doc/feed-url
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "libby.io:blah/whatever/atom.xml"
+    :db.install/_attribute :db.part/db}
+   {;; :db/id #db/id[:db.part/db]
+    :db/ident :doc/date
+    :db/valueType :db.type/instant
+    :db/cardinality :db.cardinality/one
+    :db/doc "original URL of feed"
+    :db.install/_attribute :db.part/db}
+   {;; :db/id #db/id[:db.part/db]
+    :db/ident :doc/fulltext
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "fulltext of the feed"
+    :db.install/_attribute :db.part/db}])
+
+(def derived-feed-schema
+  [{:db/ident :doc/fragments
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/many
+    :db/doc "ref type associating fragments to a feed"
+    :db/isComponent true}
+   {:db/ident :doc/feedtext
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "a feed item. one post."}])
