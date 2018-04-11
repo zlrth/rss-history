@@ -7,24 +7,27 @@
 
 (defn home-page []
   (layout/render "home.html"))
-(def changeablevalue (atom []))
-(defn dynfn [] @changeablevalue)
+
 (defroutes home-routes
-  (GET "/user/:user/:title" [user title :as request] () #_(str (dynfn)))
+  (GET "/user/:user/:title" [user title :as request] ()))
+
   (GET "/" []
        (home-page))
+
   (GET "/docs" []
        (-> (response/ok (-> "docs/docs.md" io/resource slurp))
            (response/header "Content-Type" "text/plain; charset=utf-8")))
+
   (GET "/matt" []
        (-> (response/ok (-> "xml.xml" slurp))
            (response/header "Content-Type" "text/plain; charset=utf-8")))
+
   (POST "/rss" request
         (let [url (-> request :body-params)
               response (controller/do-thing url)]
-
           (-> (response/ok (str response  "\n"))
               (response/header "Content-Type" "text/plain; charset=utf-8"))))
+
   (POST "/generatefeed" request
         (let [url (-> request :body-params)
               response (controller/do-second-thing url)]
