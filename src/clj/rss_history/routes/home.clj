@@ -9,7 +9,7 @@
   (layout/render "home.html"))
 
 (defroutes home-routes
-  (GET "/user/:user/:title" [user title :as request] ()))
+  (GET "/user/:user/:title" [user title :as request] "hello")
 
   (GET "/" []
        (home-page))
@@ -31,7 +31,5 @@
   (POST "/generatefeed" request
         (let [url (-> request :body-params)
               response (controller/do-second-thing url)]
-
           (-> (response/ok (str response  "\n"))
               (response/header "Content-Type" "text/plain; charset=utf-8")))))
-
