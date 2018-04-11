@@ -6,14 +6,16 @@
             #_[rss-history.core :refer [db-conn]]
             [mount.core :as mount]))
 
-(def uri "datomic:dev://localhost:4334/hello")
-
+(def uri "datomic:dev://localhost:4334/hello2")
+(def cfg {:server-type :peer-server
+          :access-key "myaccesskey"
+          :secret "mysecret"
+          :endpoint "localhost:8998"})
 (mount/defstate ^{:on-reload :noop}
   db-conn
   :start
   (do
-    (d/create-database uri) ;; how to make sure transactor is on?
-    (d/connect uri))
+    (dclient/connect (dclient/client cfg) {:db-name "hello2"})) ;; how to make sure transactor is on?
   :stop
   (when db-conn
     (d/shutdown false)))
@@ -55,8 +57,11 @@
   (let [tx [{:user/name user
              :doc/url url
              :doc/fulltext (str feed)}]]
-    (d/transact db-conn tx)))
-
+    (dclient/transact db-conn {:tx-data tx})))
 
 (defn add-first-feed-to-db! [feed user url]
-  (swap! state-atom assoc ))
+  nil
+  )
+
+;; add url: libby.io:8080/matt/title/feed
+;; GET thatthng query datomic: given today's timestamp, serve the feed.

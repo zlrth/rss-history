@@ -22,7 +22,7 @@
         number-of-posts (count (:entries derecordized))]
 
     (db/add-feed-url-and-user-to-db! derecordized name url)
-    (log/debug {:postCount number-of-posts})
+    (log/info {:postCount number-of-posts})
     (json/write-str {:postCount number-of-posts})))
 
 
@@ -32,14 +32,14 @@
   Then we partition the feed and and return
   the feed URL
   the end date if :type \"finisher\"
-  for now, we're only implementing \"finisher\"
-"
+  for now, we're only implementing \"finisher\" "
   [params]
-  (let [])
-  (log/info params)
-  (log/info (type params))
-  ;; (db/add-first-feed-to-db! )
-
-  )
+  (let [_ (log/info params)
+        user (:user params)
+        url  (:url params)
+        time (:partitionLength params)
+        feed (rss-history.rss/produce-feed user url time)]
+    (db/add-first-feed-to-db! feed user url)
+    (publish url)))
 
 

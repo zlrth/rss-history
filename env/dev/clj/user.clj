@@ -25,7 +25,8 @@
 (defn restart []
   (stop)
   (start))
-(def uri "datomic:dev://localhost:4334/hello") ;; for free
+;; (def uri "datomic:dev://localhost:4334/hello2") ;; commented out because it's already in rss ns.
+;; can create db with? (datomic.api/create-database  "datomic:dev://localhost:4334/hello2")
 #_(d/create-database uri) ;; for free
 
 #_(datomic.api/connect uri)
@@ -64,31 +65,31 @@
    [{:doc/feedtext "te"}
     {:doc/feedtext "xt"}]})
 (def doc-schema
-  [{:db/id #db/id[:db.part/db]
+  [{;; :db/id #db/id[:db.part/db]
     :db/ident :doc/url
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
     :db/doc "original URL of feed"
     :db.install/_attribute :db.part/db}
-   {:db/id #db/id[:db.part/db]
+   {;; :db/id #db/id[:db.part/db]
     :db/ident :doc/user
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/one
     :db/doc "each doc has one user"
     :db.install/_attribute :db.part/db}
-   {:db/id #db/id[:db.part/db]
+   {;; :db/id #db/id[:db.part/db]
     :db/ident :doc/feed-url
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
     :db/doc "libby.io:blah/whatever/atom.xml"
     :db.install/_attribute :db.part/db}
-   {:db/id #db/id[:db.part/db]
+   {;; :db/id #db/id[:db.part/db]
     :db/ident :doc/date
     :db/valueType :db.type/instant
     :db/cardinality :db.cardinality/one
     :db/doc "original URL of feed"
     :db.install/_attribute :db.part/db}
-   {:db/id #db/id[:db.part/db]
+   {;; :db/id #db/id[:db.part/db]
     :db/ident :doc/fulltext
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
@@ -106,10 +107,3 @@
     :db/cardinality :db.cardinality/one
     :db/doc "a feed item. one post."}])
 
-
-
-(defn add-feed-url-and-user-to-db! [feed user url]
-  (let [tx [{:doc/user user
-             :doc/url  url
-             :doc/fulltext feed}]]
-    (d/transact db/db-conn tx)))

@@ -5,8 +5,13 @@
             [clojure.java.io :as io]
             [clj-time.core :as time]
             [clj-rss.core :as clj-rss]
-            [rss-history.utils :as u]))
+            [rss-history.utils :as u]
+            [rss-history.db :as db]
+            [datomic.client.api :as dclient]
+            [datomic.api :as d]
+            [clojure.edn :as edn]))
 
+(def uri "datomic:dev://localhost:4334/hello2") ;; for free
 
 
 (defn rename-rss-keys [set-of-feeds]
@@ -56,19 +61,6 @@
                             (assoc % :description (xml-str value))
                             %) entry))
 
-#_ (as-> (feedparser/parse-feed "http://anonymousmugwump.blogspot.co.uk/feeds/posts/default?max-results=100") $
-     (map rss-history.rss/escape-value-in-feed (:entries $))
-     ())
-#_(->> (:entries 
-      (feedparser/parse-feed "http://unqualified-reservations.blogspot.com/feeds/posts/default?max-results=10"))
-     rejigger-description-blogspot
-     rename-rss-keys
-     dissoc-rss-keys
-     (take 10)
-     (rss/channel-xml {:title "moldbug cdata first"
-                       :link "link"
-                       :description "descriptionfoobar"})
-     (spit "withescaping.xml"))
 
 (defn get-entries [db user url]
   (->> db
@@ -78,25 +70,34 @@
        :fulltext
        :entries))
 
-(defn get-full-text [db user url]
-  (->> db
-       (u/match-kv :user user)
-       :docs
-       (u/match-kv :url url)
-       :fulltext))
+(defn get-full-text [user url]
+  (->>  (d/q '[:find ?fulltext .
+               :in $ ?user ?url
+               :where
+               [?e :user/name ?user]
+               [?e :doc/url ?url]
+               [?e :doc/fulltext ?fulltext]]
+             (d/db (d/connect uri)) user url)
+        edn/read-string))
 
-(def time->days {"a year"     365
+
+#_(def time->days {"a year"     365
                  "6 months" 182
                  "3 months" 91
                  "a month"  30
                  "a week"   7})
+(def time->days {"9"     365
+                 "7" 182
+                 "5" 91
+                 "3"  30
+                 "1"   7})
 
 (defn entries->first-feed [entries time]
   (let [entries-per-day (/ (count entries) (get time->days time))] ;; this produces a clojure.lang.Ratio
     [entries-per-day (take entries-per-day entries)]) )
 
-(defn produce-feed [db user url time]
-  (let [full-text (get-full-text db user url)
+(defn produce-feed [user url time]
+  (let [full-text (get-full-text user url)
         title     (str  (:title full-text) " -- Served by libby.rss!")
         link        (:link full-text)
         description (:link full-text)
@@ -108,31 +109,5 @@
     (->>  (clj-rss/channel-xml {:title title
                                :link link
                                :description description}
-                               entries)
-         (spit "cancreate/potential-feed.xml"))))
+                               entries))))
 
-#_(let [[t-me {:keys [docs] :as t-you}]
-      [{:user "me"  :docs [{:one "two"}]}
-       {:user "you" :docs [{:three "four"}]}]
-      payload {:five "six"}
-      new-you-docs (conj docs payload)]
-  [t-me
-   (assoc t-you :docs new-you-docs)])
-
-(def attempt  (fn [coll]
-                (map
-                 (fn [row]
-                   (if (= (:user row) "matt")
-                     (assoc-in row [:docs]  (conj (:docs row) {:five "six"}))
-                     row))  coll)))
-#_(->>  ((fn append-to-users-docs [user url coll]
-         (map
-          (fn [row]
-            (if (= (:user row) user)
-              (map #(if (= (:url %) url)
-                      (assoc-in row [:docs] (conj (:docs row) {:five "six"}))
-                      row)
-                   (:docs row))
-              
-              row))  coll)) "matt" "www.bing.com" dummy-data )
-      clojure.pprint/pprint)
