@@ -25,7 +25,7 @@
   (let [tx [{:user/name user
              :doc/url url
              :doc/fulltext (str feed)
-             :doc/hash (hash url)}]]
+             :doc/hash (hash (str user url))}]]
     (dclient/transact db-conn {:tx-data tx})))
 
 
