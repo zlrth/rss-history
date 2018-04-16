@@ -3,7 +3,6 @@
             [rss-history.utils :as u]
             [datomic.api :as d]
             [datomic.client.api :as dclient]
-            #_[rss-history.core :refer [db-conn]]
             [mount.core :as mount]))
 
 (def uri "datomic:dev://localhost:4334/hello4")
@@ -11,6 +10,7 @@
           :access-key "myaccesskey"
           :secret "mysecret"
           :endpoint "localhost:8998"})
+
 (mount/defstate ^{:on-reload :noop}
   db-conn
   :start
@@ -20,6 +20,15 @@
   (when db-conn
     (d/shutdown false)))
 
+(defn get-full-text [user url]
+  (->>  (d/q '[:find ?fulltext .
+               :in $ ?user ?url
+               :where
+               [?e :user/name ?user]
+               [?e :doc/url ?url]
+               [?e :doc/fulltext ?fulltext]]
+             (d/db (d/connect uri)) user url)
+        edn/read-string))
 
 (defn add-feed-url-and-user-to-db! [feed user url]
   (let [tx [{:user/name user
@@ -29,10 +38,6 @@
     (dclient/transact db-conn {:tx-data tx})))
 
 
-(defn get-users-derived-feeds [dumpy]
-
-  nil)
-
 (def user-schema
   [{;; :db/id #db/id[:db.part/db]
     :db/ident :user/name
@@ -40,8 +45,7 @@
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
     :db/doc "user name"
-    :db.install/_attribute :db.part/db
-    }])
+    :db.install/_attribute :db.part/db}])
 
 
 (def doc-schema
@@ -68,7 +72,7 @@
     :db/valueType :db.type/long
     :db/cardinality :db.cardinality/one
     :db/unique :db.unique/identity
-    :db/doc "for making derived feed URLs"
+    :db/doc "for making derived feed URLs. it's (hash (str user url)), so that it can be unique-for-a-user."
     :db.install/_attribute :db.part/db}
    {;; :db/id #db/id[:db.part/db]
     :db/ident :doc/date
@@ -107,5 +111,3 @@
     :db/valueType :db.type/string
     :db/doc "not sure if this is the right way to do this."
     :db/cardinality :db.cardinality/one}])
-;; (count  (filter #(time/before? (time/plus (time/now) (time/months 1)) (first (clj-time.coerce/to-date-time %))) (group-by second s)))
-;; (filter #(time/before? (clj-time.coerce/to-date-time %) (time/now)) (map first (group-by second s)))

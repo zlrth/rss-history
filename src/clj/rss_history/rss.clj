@@ -2,7 +2,6 @@
   (:require [clojure.walk :as walk]
             [clojure.set :refer [rename-keys]]
             [feedparser-clj.core :as feedparser]
-            [clojure.java.io :as io]
             [clj-time.core :as time]
             [clj-rss.core :as clj-rss]
             [rss-history.utils :as u]
@@ -64,26 +63,7 @@
                             %) entry))
 
 
-(defn get-full-text [user url]
-  (->>  (d/q '[:find ?fulltext .
-               :in $ ?user ?url
-               :where
-               [?e :user/name ?user]
-               [?e :doc/url ?url]
-               [?e :doc/fulltext ?fulltext]]
-             (d/db (d/connect uri)) user url)
-        edn/read-string))
 
-#_(defn get-all-fragments-and-timestamps [user url]
-  (->> (d/q '[:find ?feedtexts ?timestamps
-              :in $ ?user ?url
-              :where
-              [?e :fragment/owner ?user]
-              [?e :fragment/rooturl ?url]
-              [?e :fragment/timestamp ?timestamps]
-              [?e :fragment/feedtext ?feedtexts]]
-            (d/db (d/connect uri)) [:user/name user] url)
-       ))
 (defn get-all-fragments-and-timestamps [user feed-hash]
   (->> (d/q '[:find ?feedtexts ?timestamps
               :in $ ?user ?hash
@@ -92,43 +72,20 @@
               [?e :fragment/hash ?hash]
               [?e :fragment/timestamp ?timestamps]
               [?e :fragment/feedtext ?feedtexts]]
-            (d/db (d/connect uri)) [:user/name user] [:doc/hash (read-string feed-hash)])
-       ))
+            (d/db (d/connect uri)) [:user/name user] [:doc/hash (read-string feed-hash)])))
 
 
-(def time->days {"9"     365
-                 9   365 ;; javascript wtf?
-                 "7" 182
-                 7 182
-                 "5" 91
-                 5 91
+(def time->days {"9"  365
+                 9    365 ;; javascript wtf?
+                 "7"  182
+                 7    182
+                 "5"  91
+                 5    91
                  "3"  30
-                 3 30
-                 "1"   7
-                 1 7})
+                 3    30
+                 "1"  7
+                 1    7})
 
-
-(defn entries->first-feed [entries time]
-  (let [entries-per-day (/ (count entries) (get time->days time))] ;; this produces a clojure.lang.Ratio
-    [entries-per-day (take entries-per-day entries)]) )
-
-
-(defn produce-feed
-  "HACK FIXME TODO "
-  [user url time]
-  (let [full-text (get-full-text user url)
-        title     (str  (:title full-text) " -- Served by libby.rss!")
-        link        (:link full-text)
-        description (:link full-text)
-        pre-processed-entries   (second  (entries->first-feed (:entries full-text) time))
-        entries (-> pre-processed-entries
-                    rejigger-description-blogspot
-                    rename-rss-keys
-                    dissoc-rss-keys)]
-    (->>  (clj-rss/channel-xml {:title title
-                               :link link
-                               :description description}
-                               entries))))
 
 (defn calculate-seconds
   "Given a number of "
@@ -145,7 +102,7 @@
    :fragment/hash [:doc/hash (hash url)] })
 
 (defn put-all-fragments-into-db-with-timestamps [user url time]
-  (let [fulltext (get-full-text user url) ;; assumes fulltext has desired order of fragments
+  (let [fulltext (db/get-full-text user url) ;; assumes fulltext has desired order of fragments
         num-fragments (-> fulltext :entries count)
         seconds       (calculate-seconds time num-fragments)
         timestamps     (take num-fragments (periodic/periodic-seq (time/now) (time/seconds seconds)))
@@ -163,12 +120,10 @@
                           rejigger-description-blogspot
                           rename-rss-keys
                           dissoc-rss-keys)]
-    elsee
-    ))
+    elsee))
 
 (defn the-feeds->derived-rss-feed [s]
   (clj-rss/channel-xml {:title "test"
                         :link "testlink"
                         :description "testdescription"}
-                       s)
-  )
+                       s))

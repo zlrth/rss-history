@@ -33,8 +33,7 @@
                  [ring-cors "0.1.11"]
                  [com.datomic/client-pro "0.8.14"]
                  [com.datomic/datomic-pro "0.9.5697"
-                  :exclusions [org.slf4j/slf4j-nop org.slf4j/slf4j-log4j12]
-                  ]
+                  :exclusions [org.slf4j/slf4j-nop org.slf4j/slf4j-log4j12]]
                  [ch.qos.logback/logback-classic "1.2.3"]
                  [hickory "0.7.1"]
                  [com.rpl/specter "1.1.1-SNAPSHOT"]
