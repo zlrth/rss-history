@@ -9,7 +9,9 @@
   (layout/render "home.html"))
 
 (defroutes home-routes
-  (GET "/user/:user/:title" [user title :as request] "hello")
+  (GET "/user/:user/:title" [user title :as request]
+       (-> (response/ok  "<xml> fhfeowi</xml>" #_(controller/get-derived-feed user title))
+           (response/header "Content-Type" "application/rss+xml, application/rdf+xml;q=0.8, application/atom+xml;q=0.6, application/xml;q=0.4, text/xml;q=0.4"))) ;; https://stackoverflow.com/a/7001617/3925569
 
   (GET "/" []
        (home-page))

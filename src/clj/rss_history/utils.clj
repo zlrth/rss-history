@@ -26,7 +26,7 @@
   "Given a valid url of a blogspot blog, return a properly-formatted url for
   requesting all its posts."
   [url]
-  (let [max-posts 1
+  (let [max-posts 10
         hickory (get-hickory url)
         blogger-url (find-blogger-url hickory)]
     (str blogger-url "?max-results=" max-posts)))

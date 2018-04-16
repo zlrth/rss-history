@@ -31,9 +31,15 @@
   the end date if :type \"finisher\"
   for now, we're only implementing \"finisher\" "
   [{:keys [user url partitionLength] :as params}]
-  (let [feed (rss-history.rss/produce-feed user url partitionLength)]
-    (db/add-first-feed-to-db! feed user url)
+  (let [feed (rss-history.rss/put-all-fragments-into-db-with-timestamps user url partitionLength)]
     (json/write-str {:success "hi"})))
 
 
+
+(defn get-derived-feed [user feed-id]
+  "we get all feed-ids by getting all feeds associated with a user, we hash all of them, we return the feed"
+  (let [users-feeds (db/get-users-derived-feeds [user])])
+
+
+  )
 

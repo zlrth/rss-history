@@ -9,9 +9,11 @@
             [rss-history.db :as db]
             [datomic.client.api :as dclient]
             [datomic.api :as d]
-            [clojure.edn :as edn]))
+            [clojure.edn :as edn]
+            [clj-time.periodic :as periodic]
+            [clj-time.coerce :as time-coerce]))
 
-(def uri "datomic:dev://localhost:4334/hello2") ;; for free
+(def uri "datomic:dev://localhost:4334/hello3") ;; for free
 
 
 (defn rename-rss-keys [set-of-feeds]
@@ -62,14 +64,6 @@
                             %) entry))
 
 
-(defn get-entries [db user url]
-  (->> db
-       (u/match-kv :user user)
-       :docs
-       (u/match-kv :url url)
-       :fulltext
-       :entries))
-
 (defn get-full-text [user url]
   (->>  (d/q '[:find ?fulltext .
                :in $ ?user ?url
@@ -80,23 +74,38 @@
              (d/db (d/connect uri)) user url)
         edn/read-string))
 
+(defn get-all-fragments-and-timestamps [user url]
+  (->> (d/q '[:find ?feedtexts ?timestamps
+              :in $ ?user ?url
+              :where
+              [?e :fragment/owner ?user]
+              [?e :fragment/rooturl ?url]
+              [?e :fragment/timestamp ?timestamps]
+              [?e :fragment/feedtext ?feedtexts]]
+            (d/db (d/connect uri)) [:user/name user] url)
+       ))
 
-#_(def time->days {"a year"     365
-                 "6 months" 182
-                 "3 months" 91
-                 "a month"  30
-                 "a week"   7})
+
 (def time->days {"9"     365
+                 9   365 ;; javascript wtf?
                  "7" 182
+                 7 182
                  "5" 91
+                 5 91
                  "3"  30
-                 "1"   7})
+                 3 30
+                 "1"   7
+                 1 7})
+
 
 (defn entries->first-feed [entries time]
   (let [entries-per-day (/ (count entries) (get time->days time))] ;; this produces a clojure.lang.Ratio
     [entries-per-day (take entries-per-day entries)]) )
 
-(defn produce-feed [user url time]
+
+(defn produce-feed
+  "HACK FIXME TODO "
+  [user url time]
   (let [full-text (get-full-text user url)
         title     (str  (:title full-text) " -- Served by libby.rss!")
         link        (:link full-text)
@@ -111,3 +120,44 @@
                                :description description}
                                entries))))
 
+(defn calculate-seconds
+  "Given a number of "
+  [num-days num-entries] ;; 182, 100 means "in half a year, go through 100 entries. 
+  (let [seconds-in-time-period  (* (get time->days num-days) 86400)
+        seconds-between-entries (/ seconds-in-time-period num-entries)]
+    seconds-between-entries))
+
+(defn make-map [fragment timestamp user url]
+  {:fragment/feedtext (str fragment)
+   :fragment/timestamp (time-coerce/to-date timestamp)
+   :fragment/owner [:user/name user]
+   :fragment/rooturl url
+   :fragment/hash [:doc/hash ] })
+
+(defn put-all-fragments-into-db-with-timestamps [user url time]
+  (let [fulltext (get-full-text user url) ;; assumes fulltext has desired order of fragments
+        num-fragments (-> fulltext :entries count)
+        seconds       (calculate-seconds time num-fragments)
+        timestamps     (take num-fragments (periodic/periodic-seq (time/now) (time/seconds seconds)))
+        tx (vec (mapv make-map (-> fulltext :entries) timestamps (repeat user) (repeat url)))]
+    (dclient/transact db/db-conn {:tx-data tx})))
+
+(defn db-query->the-feeds [s the-time]
+  (let [list-of-shit (->>  (group-by second s)
+                           (filter #(time/before? the-time (clj-time.coerce/to-date-time (first  %)) ))
+                           (sort-by first)
+                           (take 20)
+                           (map (comp read-string ffirst val)))
+        elsee        (->> list-of-shit
+                          rejigger-description-blogspot
+                          rename-rss-keys
+                          dissoc-rss-keys)]
+    elsee
+    ))
+
+(defn the-feeds->derived-rss-feed [s]
+  (clj-rss/channel-xml {:title "test"
+                        :link "testlink"
+                        :description "testdescription"}
+                       s)
+  )

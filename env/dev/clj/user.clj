@@ -14,7 +14,9 @@
             [rss-history.utils :as u]
             [datomic.api :as d]
             [datomic.client.api :as dclient]
-            [rss-history.controller :as cont]))
+            [rss-history.controller :as cont]
+            [clj-time.core :as time]
+            [clj-time.periodic :as periodic]))
 
 (defn start []
   (mount/start-without #'rss-history.core/repl-server))
