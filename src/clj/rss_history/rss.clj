@@ -13,7 +13,7 @@
             [clj-time.periodic :as periodic]
             [clj-time.coerce :as time-coerce]))
 
-(def uri "datomic:dev://localhost:4334/hello3") ;; for free
+(def uri "datomic:dev://localhost:4334/hello4") ;; for free
 
 
 (defn rename-rss-keys [set-of-feeds]
@@ -74,7 +74,7 @@
              (d/db (d/connect uri)) user url)
         edn/read-string))
 
-(defn get-all-fragments-and-timestamps [user url]
+#_(defn get-all-fragments-and-timestamps [user url]
   (->> (d/q '[:find ?feedtexts ?timestamps
               :in $ ?user ?url
               :where
@@ -83,6 +83,16 @@
               [?e :fragment/timestamp ?timestamps]
               [?e :fragment/feedtext ?feedtexts]]
             (d/db (d/connect uri)) [:user/name user] url)
+       ))
+(defn get-all-fragments-and-timestamps [user feed-hash]
+  (->> (d/q '[:find ?feedtexts ?timestamps
+              :in $ ?user ?hash
+              :where
+              [?e :fragment/owner ?user]
+              [?e :fragment/hash ?hash]
+              [?e :fragment/timestamp ?timestamps]
+              [?e :fragment/feedtext ?feedtexts]]
+            (d/db (d/connect uri)) [:user/name user] [:doc/hash (read-string feed-hash)])
        ))
 
 
@@ -132,7 +142,7 @@
    :fragment/timestamp (time-coerce/to-date timestamp)
    :fragment/owner [:user/name user]
    :fragment/rooturl url
-   :fragment/hash [:doc/hash ] })
+   :fragment/hash [:doc/hash (hash url)] })
 
 (defn put-all-fragments-into-db-with-timestamps [user url time]
   (let [fulltext (get-full-text user url) ;; assumes fulltext has desired order of fragments
@@ -140,9 +150,10 @@
         seconds       (calculate-seconds time num-fragments)
         timestamps     (take num-fragments (periodic/periodic-seq (time/now) (time/seconds seconds)))
         tx (vec (mapv make-map (-> fulltext :entries) timestamps (repeat user) (repeat url)))]
-    (dclient/transact db/db-conn {:tx-data tx})))
+    (dclient/transact db/db-conn {:tx-data tx})
+    (hash url)))
 
-(defn db-query->the-feeds [s the-time]
+(defn db-query->the-feeds [the-time s]
   (let [list-of-shit (->>  (group-by second s)
                            (filter #(time/before? the-time (clj-time.coerce/to-date-time (first  %)) ))
                            (sort-by first)

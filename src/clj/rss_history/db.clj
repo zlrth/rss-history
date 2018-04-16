@@ -6,7 +6,7 @@
             #_[rss-history.core :refer [db-conn]]
             [mount.core :as mount]))
 
-(def uri "datomic:dev://localhost:4334/hello3")
+(def uri "datomic:dev://localhost:4334/hello4")
 (def cfg {:server-type :peer-server
           :access-key "myaccesskey"
           :secret "mysecret"
@@ -15,7 +15,7 @@
   db-conn
   :start
   (do
-    (dclient/connect (dclient/client cfg) {:db-name "hello2"})) ;; how to make sure transactor is on?
+    (dclient/connect (dclient/client cfg) {:db-name "hello4"})) ;; how to make sure transactor is on?
   :stop
   (when db-conn
     (d/shutdown false)))
@@ -24,7 +24,8 @@
 (defn add-feed-url-and-user-to-db! [feed user url]
   (let [tx [{:user/name user
              :doc/url url
-             :doc/fulltext (str feed)}]]
+             :doc/fulltext (str feed)
+             :doc/hash (hash url)}]]
     (dclient/transact db-conn {:tx-data tx})))
 
 
